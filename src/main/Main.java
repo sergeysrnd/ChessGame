@@ -18,7 +18,8 @@ public class Main {
         
         // Настраиваем параметры окна
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  // Закрытие окна завершает программу
-        window.setResizable(false);                            // Запрещаем изменение размера окна
+        window.setResizable(true);                             // Разрешаем изменение размера окна
+        window.setMinimumSize(new java.awt.Dimension(850, 600)); // Минимальный размер окна
 //      window.getIconImage(logo.getImage());                  // TODO: Добавить иконку окна
 
         // Создаем и добавляем игровую панель

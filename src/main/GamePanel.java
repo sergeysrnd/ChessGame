@@ -1,9 +1,10 @@
 package main;
 
 import piece.*;
-
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.util.ArrayList;
 
 /**
@@ -11,10 +12,14 @@ import java.util.ArrayList;
  * Управляет отрисовкой доски, ходами фигур и игровым процессом
  */
 public class GamePanel extends JPanel implements Runnable {
-    // Размеры игрового окна
-    public static final int WIDTH = 1000 + Board.MARGIN * 2;   // Ширина окна с отступами
-    public static final int HEIGHT = 600 + Board.MARGIN * 2;  // Высота окна с отступами
-    final int FPS = 60;                                      // Частота обновления экрана
+    // Минимальные размеры игрового окна
+    public static final int MIN_WIDTH = 850 + Board.MARGIN * 2;   // Минимальная ширина окна с отступами
+    public static final int MIN_HEIGHT = 600 + Board.MARGIN * 2;  // Минимальная высота окна с отступами
+    final int FPS = 60;                                          // Частота обновления экрана
+
+    // Текущие размеры панели
+    private int currentWidth;
+    private int currentHeight;
 
     // Основные компоненты
     Thread gameThread;                      // Поток игрового цикла
@@ -43,11 +48,20 @@ public class GamePanel extends JPanel implements Runnable {
     boolean stalemate;                                          // Патовая ситуация
 
     public GamePanel() {
-
-        setPreferredSize(new Dimension(WIDTH,HEIGHT));
+        setPreferredSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
         setBackground(Color.black);
         addMouseMotionListener(mouse);
         addMouseListener(mouse);
+
+        // Добавляем слушатель изменения размера
+        addComponentListener(new ComponentAdapter() {
+            @Override
+            public void componentResized(ComponentEvent e) {
+                currentWidth = getWidth();
+                currentHeight = getHeight();
+                repaint();
+            }
+        });
 
         setPieces();
 //        testPromotion();
@@ -150,19 +164,24 @@ public class GamePanel extends JPanel implements Runnable {
     }
 
     private void update(){
-
         if (promotion){
             promotion();
         }else if (!gameOver && !stalemate){
             // Mouse Button Pressed //
             if (mouse.pressed) {
+                // Пересчитываем координаты мыши с учетом масштаба
+                double scale = Math.min((double) currentWidth / MIN_WIDTH, 
+                                      (double) currentHeight / MIN_HEIGHT);
+                int scaledMouseX = (int) (mouse.x / scale);
+                int scaledMouseY = (int) (mouse.y / scale);
+
                 if (activeP == null) {
                     // If the activeP is Null, check if you can pick up a piece
                     for (Piece piece : simPieces) {
                         // if the mouse is on an all piece, pick it up as the activeP
                         if (piece.color == currentColor &&
-                                piece.col == (mouse.x - Board.MARGIN) / Board.SQUARE_SIZE &&
-                                piece.row == (mouse.y - Board.MARGIN) / Board.SQUARE_SIZE) {
+                                piece.col == (scaledMouseX - Board.MARGIN) / Board.SQUARE_SIZE &&
+                                piece.row == (scaledMouseY - Board.MARGIN) / Board.SQUARE_SIZE) {
                             activeP = piece;
                         }
                     }
@@ -252,9 +271,15 @@ public class GamePanel extends JPanel implements Runnable {
             castlingP = null;
         }
 
+        // Пересчитываем координаты мыши с учетом масштаба
+        double scale = Math.min((double) currentWidth / MIN_WIDTH, 
+                              (double) currentHeight / MIN_HEIGHT);
+        int scaledMouseX = (int) (mouse.x / scale);
+        int scaledMouseY = (int) (mouse.y / scale);
+
         // if a piece is being hold, update its position
-        activeP.x = mouse.x - Board.HALF_SQUARE_SIZE;
-        activeP.y = mouse.y - Board.HALF_SQUARE_SIZE;
+        activeP.x = scaledMouseX - Board.HALF_SQUARE_SIZE;
+        activeP.y = scaledMouseY - Board.HALF_SQUARE_SIZE;
         activeP.col = activeP.getCol(activeP.x);
         activeP.row = activeP.getRow(activeP.y);
 
@@ -280,6 +305,18 @@ public class GamePanel extends JPanel implements Runnable {
         super.paintComponent(g);
 
         Graphics2D g2 = (Graphics2D) g;
+        
+        // Получаем текущие размеры панели
+        currentWidth = getWidth();
+        currentHeight = getHeight();
+        
+        // Устанавливаем масштабирование
+        double scaleX = (double) currentWidth / MIN_WIDTH;
+        double scaleY = (double) currentHeight / MIN_HEIGHT;
+        double scale = Math.min(scaleX, scaleY);
+        
+        // Применяем масштабирование
+        g2.scale(scale, scale);
         //Board
         board.draw(g2);
 
@@ -314,25 +351,53 @@ public class GamePanel extends JPanel implements Runnable {
         g2.setFont(new Font("Book Antiqua", Font.PLAIN, 25));
         g2.setColor(Color.white);
 
+        // Рассчитываем центр области для сообщений
+        int messageAreaX = 600; // Начало области сообщений
+        int messageAreaWidth = MIN_WIDTH - messageAreaX; // Ширина области сообщений
+        
+        // Вспомогательная функция для центрирования текста
+        FontMetrics fm = g2.getFontMetrics();
+
         if (promotion){
-            g2.drawString("Promote to: " , 700, 150);
+            String promoText = "Promote to:";
+            int textWidth = fm.stringWidth(promoText);
+            int x = messageAreaX + (messageAreaWidth - textWidth) / 2;
+            g2.drawString(promoText, x, 150);
             for (Piece piece : promoPieces)
                 g2.drawImage(piece.image, piece.getX(piece.col), piece.getY(piece.row),
                         Board.SQUARE_SIZE, Board.SQUARE_SIZE, null);
         }else {
             if (currentColor == WHITE){
-                g2.drawString("White's turn", 700, 490);
+                String turnText = "White's turn";
+                int textWidth = fm.stringWidth(turnText);
+                int x = messageAreaX + (messageAreaWidth - textWidth) / 2;
+                g2.drawString(turnText, x, 490);
                 if (checkingP != null && checkingP.color == BLACK){
                     g2.setColor(Color.red);
-                    g2.drawString("The King", 700, 530);
-                    g2.drawString("is in check!", 700, 560);
-                    }
+                    String kingText = "The King";
+                    String checkText = "is in check!";
+                    int kingWidth = fm.stringWidth(kingText);
+                    int checkWidth = fm.stringWidth(checkText);
+                    int kingX = messageAreaX + (messageAreaWidth - kingWidth) / 2;
+                    int checkX = messageAreaX + (messageAreaWidth - checkWidth) / 2;
+                    g2.drawString(kingText, kingX, 530);
+                    g2.drawString(checkText, checkX, 560);
+                }
             }else {
-                g2.drawString("Black's turn", 700, 120);
+                String turnText = "Black's turn";
+                int textWidth = fm.stringWidth(turnText);
+                int x = messageAreaX + (messageAreaWidth - textWidth) / 2;
+                g2.drawString(turnText, x, 120);
                 if (checkingP != null && checkingP.color == WHITE) {
                     g2.setColor(Color.red);
-                    g2.drawString("The King", 700, 50);
-                    g2.drawString("is in check!", 700, 80);
+                    String kingText = "The King";
+                    String checkText = "is in check!";
+                    int kingWidth = fm.stringWidth(kingText);
+                    int checkWidth = fm.stringWidth(checkText);
+                    int kingX = messageAreaX + (messageAreaWidth - kingWidth) / 2;
+                    int checkX = messageAreaX + (messageAreaWidth - checkWidth) / 2;
+                    g2.drawString(kingText, kingX, 50);
+                    g2.drawString(checkText, checkX, 80);
                 }
             }
         }
@@ -348,7 +413,10 @@ public class GamePanel extends JPanel implements Runnable {
             // Draw text message on top of the semi-transparent background
             g2.setFont(new Font("Arial", Font.BOLD, 90));
             g2.setColor(Color.green);
-            g2.drawString(s, 200, 320);
+            FontMetrics fmBig = g2.getFontMetrics();
+            int textWidth = fmBig.stringWidth(s);
+            int x = (MIN_WIDTH - textWidth) / 2;
+            g2.drawString(s, x, 320);
         }
 
         if (stalemate){
@@ -359,7 +427,11 @@ public class GamePanel extends JPanel implements Runnable {
             // Draw text message on top of the semi-transparent background
             g2.setFont(new Font("Arial", Font.BOLD, 90));
             g2.setColor(Color.lightGray);
-            g2.drawString("Stalemate", 200, 320);
+            FontMetrics fmBig = g2.getFontMetrics();
+            String stalemateText = "Stalemate";
+            int textWidth = fmBig.stringWidth(stalemateText);
+            int x = (MIN_WIDTH - textWidth) / 2;
+            g2.drawString(stalemateText, x, 320);
         }
     }
 
