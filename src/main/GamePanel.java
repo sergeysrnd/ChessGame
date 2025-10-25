@@ -6,33 +6,41 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.ArrayList;
 
-public class GamePanel extends JPanel implements Runnable{
-    public static final int WIDTH = 800;
-    public static final int HEIGHT = 600;
-    final int FPS = 60;
-    Thread gameThread;
-    Board board = new Board();
-    Mouse mouse = new Mouse();
+/**
+ * GamePanel - основной класс игровой логики шахмат
+ * Управляет отрисовкой доски, ходами фигур и игровым процессом
+ */
+public class GamePanel extends JPanel implements Runnable {
+    // Размеры игрового окна
+    public static final int WIDTH = 800;   // Ширина окна
+    public static final int HEIGHT = 600;  // Высота окна
+    final int FPS = 60;                    // Частота обновления экрана
 
-    //Pieces
-    public static ArrayList<Piece> pieces = new ArrayList<>();
-    public static ArrayList<Piece> simPieces = new ArrayList<>();
-    ArrayList<Piece> promoPieces = new ArrayList<>();
-    public static Piece castlingP;
-    Piece activeP, checkingP;
+    // Основные компоненты
+    Thread gameThread;                      // Поток игрового цикла
+    Board board = new Board();             // Шахматная доска
+    Mouse mouse = new Mouse();             // Обработчик мыши
+
+    // Управление фигурами
+    public static ArrayList<Piece> pieces = new ArrayList<>();     // Список всех фигур на доске
+    public static ArrayList<Piece> simPieces = new ArrayList<>();  // Копия фигур для симуляции ходов
+    ArrayList<Piece> promoPieces = new ArrayList<>();             // Фигуры для превращения пешки
+    public static Piece castlingP;                                // Фигура для рокировки
+    Piece activeP,                                               // Выбранная фигура
+          checkingP;                                             // Фигура, создающая шах
 
 
-    //Color
-    public static final int WHITE = 0;
-    public static final int BLACK = 1;
-    int currentColor = WHITE;
+    // Цвета игроков
+    public static final int WHITE = 0;                           // Белые фигуры
+    public static final int BLACK = 1;                           // Черные фигуры
+    int currentColor = WHITE;                                    // Текущий ход
 
-    //Booleans
-    boolean canMove;
-    boolean validSquare;
-    boolean promotion;
-    boolean gameOver;
-    boolean stalemate;
+    // Флаги состояния игры
+    boolean canMove;                                             // Можно ли двигать фигуру
+    boolean validSquare;                                         // Допустимая клетка для хода
+    boolean promotion;                                           // Режим превращения пешки
+    boolean gameOver;                                            // Игра окончена
+    boolean stalemate;                                          // Патовая ситуация
 
     public GamePanel() {
 

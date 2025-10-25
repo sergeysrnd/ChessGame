@@ -11,9 +11,9 @@ public class Pawn extends Piece{
         type = Type.PAWN;
 
         if (color == GamePanel.WHITE) {
-            image = getImage("/res/piece/w-pawn");
+            image = getImage("w-pawn");
         }else {
-            image = getImage("/res/piece/b-pawn");
+            image = getImage("b-pawn");
         }
     }
     public boolean canMove(int targetCol, int targetRow) {

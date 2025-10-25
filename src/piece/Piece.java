@@ -7,6 +7,7 @@ import main.Type;
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
+import java.io.File;
 import java.io.IOException;
 
 public class Piece {
@@ -29,12 +30,36 @@ public class Piece {
         preRow = row;
     }
 
-    public BufferedImage getImage(String imagePath) {
+    public BufferedImage getImage(String imageName) {
         BufferedImage image = null;
         try {
-            image = ImageIO.read(
-                    Piece.class.getResourceAsStream(imagePath + ".png"));
-        }catch (IOException e){
+            // Попробуем загрузить изображение из нескольких возможных путей
+            String[] paths = {
+                "res/piece/" + imageName + ".png",
+                "bin/res/piece/" + imageName + ".png",
+                "src/resources/" + imageName + ".png",
+                imageName + ".png"
+            };
+            
+            for (String path : paths) {
+                try {
+                    image = ImageIO.read(new File(path));
+                    if (image != null) {
+                        System.out.println("Successfully loaded image from: " + path);
+                        break;
+                    }
+                } catch (IOException e) {
+                    // Продолжаем искать в следующем пути
+                    continue;
+                }
+            }
+            
+            if (image == null) {
+                System.err.println("Failed to load image: " + imageName);
+                System.err.println("Tried paths: " + String.join(", ", paths));
+            }
+        } catch (Exception e) {
+            System.err.println("Error loading image: " + imageName);
             e.printStackTrace();
         }
         return image;

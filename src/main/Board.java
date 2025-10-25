@@ -2,6 +2,11 @@ package main;
 
 import java.awt.*;
 
+/**
+ * Board - класс, отвечающий за отрисовку шахматной доски
+ * Создает классическую шахматную доску 8x8 клеток
+ * с чередующимися светлыми и темными квадратами
+ */
 public class Board {
 
     // Board dimensions – an 8x8 grid like a chess board

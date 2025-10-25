@@ -10,9 +10,9 @@ public class Knight extends Piece{
         type = Type.KNIGHT;
 
         if (color == GamePanel.WHITE) {
-            image = getImage("/res/piece/w-knight");
+            image = getImage("w-knight");
         }else {
-            image = getImage("/res/piece/b-knight");
+            image = getImage("b-knight");
         }
     }
     public boolean canMove(int targetCol, int targetRow){
