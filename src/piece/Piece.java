@@ -66,16 +66,20 @@ public class Piece {
     }
 
     public int getX(int col) {
-        return col* Board.SQUARE_SIZE;
+        return col * Board.SQUARE_SIZE + Board.MARGIN;
     }
 
     public int getY(int row) {
-        return row* Board.SQUARE_SIZE;
+        return row * Board.SQUARE_SIZE + Board.MARGIN;
     }
 
-    public int getCol(int x) {return (x + Board.HALF_SQUARE_SIZE)/Board.SQUARE_SIZE;}
+    public int getCol(int x) {
+        return (x - Board.MARGIN + Board.HALF_SQUARE_SIZE)/Board.SQUARE_SIZE;
+    }
 
-    public int getRow(int y) {return (y + Board.HALF_SQUARE_SIZE)/Board.SQUARE_SIZE;}
+    public int getRow(int y) {
+        return (y - Board.MARGIN + Board.HALF_SQUARE_SIZE)/Board.SQUARE_SIZE;
+    }
 
     public Piece getHittingP(int targetCol, int targetRow){
         for (Piece piece : GamePanel.simPieces){

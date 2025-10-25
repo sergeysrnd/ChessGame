@@ -12,9 +12,9 @@ import java.util.ArrayList;
  */
 public class GamePanel extends JPanel implements Runnable {
     // Размеры игрового окна
-    public static final int WIDTH = 800;   // Ширина окна
-    public static final int HEIGHT = 600;  // Высота окна
-    final int FPS = 60;                    // Частота обновления экрана
+    public static final int WIDTH = 1000 + Board.MARGIN * 2;   // Ширина окна с отступами
+    public static final int HEIGHT = 600 + Board.MARGIN * 2;  // Высота окна с отступами
+    final int FPS = 60;                                      // Частота обновления экрана
 
     // Основные компоненты
     Thread gameThread;                      // Поток игрового цикла
@@ -161,8 +161,8 @@ public class GamePanel extends JPanel implements Runnable {
                     for (Piece piece : simPieces) {
                         // if the mouse is on an all piece, pick it up as the activeP
                         if (piece.color == currentColor &&
-                                piece.col == mouse.x / Board.SQUARE_SIZE &&
-                                piece.row == mouse.y / Board.SQUARE_SIZE) {
+                                piece.col == (mouse.x - Board.MARGIN) / Board.SQUARE_SIZE &&
+                                piece.row == (mouse.y - Board.MARGIN) / Board.SQUARE_SIZE) {
                             activeP = piece;
                         }
                     }
@@ -293,14 +293,16 @@ public class GamePanel extends JPanel implements Runnable {
                 if (isIllegal(activeP) || opponentCanCaptureKing()){
                     g2.setColor(Color.gray);
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OUT, 0.7f));
-                    g2.fillRect(activeP.col*Board.SQUARE_SIZE, activeP.row*Board.SQUARE_SIZE,
-                            Board.SQUARE_SIZE, Board.SQUARE_SIZE);
+                    g2.fillRect(activeP.col*Board.SQUARE_SIZE + Board.MARGIN, 
+                              activeP.row*Board.SQUARE_SIZE + Board.MARGIN,
+                              Board.SQUARE_SIZE, Board.SQUARE_SIZE);
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
                 }else {
                     g2.setColor(Color.white);
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OUT, 0.7f));
-                    g2.fillRect(activeP.col*Board.SQUARE_SIZE, activeP.row*Board.SQUARE_SIZE,
-                            Board.SQUARE_SIZE, Board.SQUARE_SIZE);
+                    g2.fillRect(activeP.col*Board.SQUARE_SIZE + Board.MARGIN, 
+                              activeP.row*Board.SQUARE_SIZE + Board.MARGIN,
+                              Board.SQUARE_SIZE, Board.SQUARE_SIZE);
                     g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 1f));
                 }
             }
@@ -313,24 +315,24 @@ public class GamePanel extends JPanel implements Runnable {
         g2.setColor(Color.white);
 
         if (promotion){
-            g2.drawString("Promote to: " , 630, 150);
+            g2.drawString("Promote to: " , 700, 150);
             for (Piece piece : promoPieces)
                 g2.drawImage(piece.image, piece.getX(piece.col), piece.getY(piece.row),
                         Board.SQUARE_SIZE, Board.SQUARE_SIZE, null);
         }else {
             if (currentColor == WHITE){
-                g2.drawString("White's turn", 630,490);
+                g2.drawString("White's turn", 700, 490);
                 if (checkingP != null && checkingP.color == BLACK){
                     g2.setColor(Color.red);
-                    g2.drawString("The King", 630, 530);
-                    g2.drawString("is in check!", 630, 560);
+                    g2.drawString("The King", 700, 530);
+                    g2.drawString("is in check!", 700, 560);
                     }
             }else {
-                g2.drawString("Black's turn", 630,120);
+                g2.drawString("Black's turn", 700, 120);
                 if (checkingP != null && checkingP.color == WHITE) {
                     g2.setColor(Color.red);
-                    g2.drawString("The King", 630, 50);
-                    g2.drawString("is in check!", 630, 80);
+                    g2.drawString("The King", 700, 50);
+                    g2.drawString("is in check!", 700, 80);
                 }
             }
         }

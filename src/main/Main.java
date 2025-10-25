@@ -8,7 +8,7 @@ import javax.swing.*;
  */
 public class Main {
 
-    // TODO: Раскомментировать после добавления иконки
+// TODO: Раскомментировать после добавления иконки
 //    static ImageIcon logo = new ImageIcon(Main.class.getClassLoader().
 //            getResource("res/chess.png"));
 
