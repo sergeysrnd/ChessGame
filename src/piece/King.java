@@ -10,9 +10,9 @@ public class King extends Piece{
         type = Type.KING;
 
         if (color == GamePanel.WHITE) {
-            image = getImage("/piece/w-king");
+            image = getImage("/res/piece/w-king");
         }else {
-            image = getImage("/piece/b-king");
+            image = getImage("/res/piece/b-king");
         }
     }
 

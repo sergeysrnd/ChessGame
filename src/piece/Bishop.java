@@ -10,9 +10,9 @@ public class Bishop extends Piece{
         type = Type.BISHOP;
 
         if (color == GamePanel.WHITE) {
-            image = getImage("/piece/w-bishop");
+            image = getImage("/res/piece/w-bishop");
         }else {
-            image = getImage("/piece/b-bishop");
+            image = getImage("/res/piece/b-bishop");
         }
     }
 
