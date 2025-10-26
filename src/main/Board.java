@@ -37,10 +37,10 @@ public class Board {
             for (int col = 0; col < MAX_COL; col++) {
                 // Choose colour based on the toggle flag
                 if (c == 0) {
-                    g2.setColor(new Color(227, 171, 117));  // Светлый цвет
+                    g2.setColor(new Color(240, 217, 181));  // Светло-коричневый цвет
                     c = 1;
                 } else {
-                    g2.setColor(new Color(201, 138, 18));   // Темный цвет
+                    g2.setColor(new Color(181, 136, 99));   // Темно-коричневый цвет
                     c = 0;
                 }
 
