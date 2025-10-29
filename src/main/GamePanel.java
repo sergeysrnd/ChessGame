@@ -5,6 +5,7 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
 import java.awt.event.ComponentEvent;
+import java.awt.geom.AffineTransform;
 import java.util.ArrayList;
 
 /**
@@ -25,6 +26,7 @@ public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;                      // Поток игрового цикла
     Board board = new Board();             // Шахматная доска
     Mouse mouse = new Mouse();             // Обработчик мыши
+    MoveHistory moveHistory = new MoveHistory();  // История ходов
 
     // Управление фигурами
     public static ArrayList<Piece> pieces = new ArrayList<>();     // Список всех фигур на доске
@@ -199,12 +201,22 @@ public class GamePanel extends JPanel implements Runnable {
                     if (validSquare){
                         // Move confirmed
 
+                        // Сохраняем позиции для записи хода
+                        int fromCol = activeP.preCol;
+                        int fromRow = activeP.preRow;
+                        int toCol = activeP.col;
+                        int toRow = activeP.row;
+                        boolean isCapture = activeP.hittingP != null;
+
                         //Update the piece list in case a piece has been captured and removed during the simulation
                         copyPieces(simPieces, pieces);
                         activeP.updatePosition();
                         if (castlingP != null){
                             castlingP.updatePosition();
                         }
+
+                        // Записываем ход в историю
+                        moveHistory.addMove(fromCol, fromRow, toCol, toRow, activeP, isCapture, null);
 
                         if (isKingInCheck() && isCheckMate()){
                             gameOver = true;
@@ -306,18 +318,20 @@ public class GamePanel extends JPanel implements Runnable {
 
         Graphics2D g2 = (Graphics2D) g;
         
-        // Получаем текущие размеры панели
+        // Получаем текущие размеры панели (в device-координатах)
         currentWidth = getWidth();
         currentHeight = getHeight();
-        
-        // Устанавливаем масштабирование
+
+        // Устанавливаем масштабирование (логическое пространство соответствует MIN_WIDTH x MIN_HEIGHT)
         double scaleX = (double) currentWidth / MIN_WIDTH;
         double scaleY = (double) currentHeight / MIN_HEIGHT;
         double scale = Math.min(scaleX, scaleY);
-        
-        // Применяем масштабирование
+
+        // Сохраняем текущую трансформацию и применяем масштаб
+        AffineTransform oldTransform = g2.getTransform();
         g2.scale(scale, scale);
-        //Board
+
+        //Board (отрисовываем в логических координатах)
         board.draw(g2);
 
         //Piece
@@ -400,6 +414,25 @@ public class GamePanel extends JPanel implements Runnable {
                     g2.drawString(checkText, checkX, 80);
                 }
             }
+            
+            // Отображение протокола игры
+            g2.setColor(Color.white);
+            g2.setFont(new Font("Courier New", Font.PLAIN, 14));
+            String protocol = moveHistory.getFormattedNotation();
+            String[] protocolLines = protocol.split("\n");
+            
+            int protocolY = 180;
+            int lineHeight = 18;
+            int maxLines = 12;  // Максимальное количество видимых строк
+            int startLine = Math.max(0, protocolLines.length - maxLines);
+            int protocolX = messageAreaX + 60;  // Смещение протокола правее
+            
+            for (int i = startLine; i < protocolLines.length; i++) {
+                if (protocolY < 570) {  // Не выходим за границы области
+                    g2.drawString(protocolLines[i], protocolX, protocolY);
+                    protocolY += lineHeight;
+                }
+            }
         }
 
         if (gameOver){
@@ -420,19 +453,27 @@ public class GamePanel extends JPanel implements Runnable {
         }
 
         if (stalemate){
-            // Draw semi-transparent black rectangle
-            g2.setColor(new Color(0, 0, 0, 128)); // 128 is the alpha value for 50% opacity
-            g2.fillRect(0, 0, getWidth(), getHeight());
+            // Восстанавливаем device-трансформацию, чтобы фоновая полупрозрачная заливка покрыла всё окно
+            g2.setTransform(oldTransform);
 
-            // Draw text message on top of the semi-transparent background
+            // Draw semi-transparent black rectangle (в device-координатах)
+            g2.setColor(new Color(0, 0, 0, 128)); // 128 is the alpha value for 50% opacity
+            g2.fillRect(0, 0, currentWidth, currentHeight);
+
+            // Draw text message on top of the semi-transparent background (центрируем по экрану)
             g2.setFont(new Font("Arial", Font.BOLD, 90));
             g2.setColor(Color.lightGray);
             FontMetrics fmBig = g2.getFontMetrics();
             String stalemateText = "Stalemate";
             int textWidth = fmBig.stringWidth(stalemateText);
-            int x = (MIN_WIDTH - textWidth) / 2;
-            g2.drawString(stalemateText, x, 320);
+            int x = (currentWidth - textWidth) / 2;
+            int y = currentHeight / 2 + fmBig.getAscent() / 2;
+            g2.drawString(stalemateText, x, y);
         }
+        
+        // После окончания отрисовки логического содержимого и возможных overlay'ов
+        // восстанавливаем трансформацию на всякий случай (если она ещё не была восстановлена выше)
+        g2.setTransform(oldTransform);
     }
 
     private void changePlayer(){
