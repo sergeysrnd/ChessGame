@@ -32,37 +32,46 @@ public class Piece {
 
     public BufferedImage getImage(String imageName) {
         BufferedImage image = null;
-        try {
-            // Попробуем загрузить изображение из нескольких возможных путей
-            String[] paths = {
-                "res/piece/" + imageName + ".png",
-                "bin/res/piece/" + imageName + ".png",
-                "src/resources/" + imageName + ".png",
-                imageName + ".png"
-            };
-            
-            for (String path : paths) {
+        
+        // Основной путь - самый вероятный
+        String primaryPath = "res/piece/" + imageName + ".png";
+        File primaryFile = new File(primaryPath);
+        
+        if (primaryFile.exists()) {
+            try {
+                image = ImageIO.read(primaryFile);
+                return image;
+            } catch (IOException e) {
+                System.err.println("Error loading image from primary path: " + primaryPath);
+            }
+        }
+        
+        // Резервные пути
+        String[] fallbackPaths = {
+            "bin/res/piece/" + imageName + ".png",
+            "src/resources/" + imageName + ".png"
+        };
+        
+        for (String path : fallbackPaths) {
+            File file = new File(path);
+            if (file.exists()) {
                 try {
-                    image = ImageIO.read(new File(path));
+                    image = ImageIO.read(file);
                     if (image != null) {
-                        System.out.println("Successfully loaded image from: " + path);
-                        break;
+                        return image;
                     }
                 } catch (IOException e) {
-                    // Продолжаем искать в следующем пути
+                    // Продолжаем поиск
                     continue;
                 }
             }
-            
-            if (image == null) {
-                System.err.println("Failed to load image: " + imageName);
-                System.err.println("Tried paths: " + String.join(", ", paths));
-            }
-        } catch (Exception e) {
-            System.err.println("Error loading image: " + imageName);
-            e.printStackTrace();
         }
-        return image;
+        
+        // Если изображение не найдено, выводим ошибку один раз
+        System.err.println("Warning: Could not load image: " + imageName + ".png");
+        System.err.println("Expected location: " + primaryPath);
+        
+        return null;
     }
 
     public int getX(int col) {

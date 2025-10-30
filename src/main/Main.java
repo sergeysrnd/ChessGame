@@ -22,8 +22,20 @@ public class Main {
         window.setMinimumSize(new java.awt.Dimension(850, 600)); // Минимальный размер окна
 //      window.getIconImage(logo.getImage());                  // TODO: Добавить иконку окна
 
+        // Показываем диалог выбора режима игры
+        GameModeSelector modeSelector = new GameModeSelector(window);
+        modeSelector.setVisible(true);
+        
+        int gameMode = modeSelector.getSelectedMode();
+        int difficulty = modeSelector.getSelectedDifficulty();
+        
+        // Если пользователь закрыл диалог без выбора, используем режим PvP по умолчанию
+        if (gameMode == -1) {
+            gameMode = 0;
+        }
+        
         // Создаем и добавляем игровую панель
-        GamePanel gp = new GamePanel();                        // Создаем панель с игровой логикой
+        GamePanel gp = new GamePanel(gameMode, difficulty);    // Создаем панель с выбранным режимом
         window.add(gp);                                        // Добавляем панель в окно
         window.pack();                                         // Устанавливаем оптимальный размер окна
 

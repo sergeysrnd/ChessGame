@@ -1,6 +1,7 @@
 package main;
 
 import piece.*;
+import ai.ChessAI;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -48,8 +49,25 @@ public class GamePanel extends JPanel implements Runnable {
     boolean promotion;                                           // Режим превращения пешки
     boolean gameOver;                                            // Игра окончена
     boolean stalemate;                                          // Патовая ситуация
+    
+    // AI режим
+    private int gameMode;                                        // 0: PvP, 1: PvAI
+    private ChessAI ai;                                          // Искусственный интеллект
+    private boolean aiThinking;                                  // AI думает над ходом
+    private int aiColor;                                         // Цвет фигур AI (обычно BLACK)
 
     public GamePanel() {
+        this(0, 3);  // По умолчанию PvP режим
+    }
+    
+    public GamePanel(int gameMode, int difficulty) {
+        this.gameMode = gameMode;
+        this.aiColor = BLACK;  // AI играет черными
+        
+        if (gameMode == 1) {
+            this.ai = new ChessAI(difficulty);
+        }
+        
         setPreferredSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
         setBackground(Color.black);
         addMouseMotionListener(mouse);
@@ -169,78 +187,177 @@ public class GamePanel extends JPanel implements Runnable {
         if (promotion){
             promotion();
         }else if (!gameOver && !stalemate){
-            // Mouse Button Pressed //
-            if (mouse.pressed) {
-                // Пересчитываем координаты мыши с учетом масштаба
-                double scale = Math.min((double) currentWidth / MIN_WIDTH, 
-                                      (double) currentHeight / MIN_HEIGHT);
-                int scaledMouseX = (int) (mouse.x / scale);
-                int scaledMouseY = (int) (mouse.y / scale);
-
-                if (activeP == null) {
-                    // If the activeP is Null, check if you can pick up a piece
-                    for (Piece piece : simPieces) {
-                        // if the mouse is on an all piece, pick it up as the activeP
-                        if (piece.color == currentColor &&
-                                piece.col == (scaledMouseX - Board.MARGIN) / Board.SQUARE_SIZE &&
-                                piece.row == (scaledMouseY - Board.MARGIN) / Board.SQUARE_SIZE) {
-                            activeP = piece;
-                        }
-                    }
-                }else {
-                    // if the player is holding a piece, simulate the move
-                    simulate();
-                }
-
+            // Обработка хода AI если это режим PvAI и ход AI
+            if (gameMode == 1 && currentColor == aiColor && !aiThinking) {
+                makeAIMove();
             }
-            // Mouse Button released
-            if (!mouse.pressed){
+            
+            // Обработка ходов игрока (только если это не ход AI)
+            if (currentColor != aiColor || gameMode == 0) {
+                // Mouse Button Pressed //
+                if (mouse.pressed) {
+                    // Пересчитываем координаты мыши с учетом масштаба
+                    double scale = Math.min((double) currentWidth / MIN_WIDTH, 
+                                          (double) currentHeight / MIN_HEIGHT);
+                    int scaledMouseX = (int) (mouse.x / scale);
+                    int scaledMouseY = (int) (mouse.y / scale);
 
-                if (activeP != null){
-
-                    if (validSquare){
-                        // Move confirmed
-
-                        // Сохраняем позиции для записи хода
-                        int fromCol = activeP.preCol;
-                        int fromRow = activeP.preRow;
-                        int toCol = activeP.col;
-                        int toRow = activeP.row;
-                        boolean isCapture = activeP.hittingP != null;
-
-                        //Update the piece list in case a piece has been captured and removed during the simulation
-                        copyPieces(simPieces, pieces);
-                        activeP.updatePosition();
-                        if (castlingP != null){
-                            castlingP.updatePosition();
-                        }
-
-                        // Записываем ход в историю
-                        moveHistory.addMove(fromCol, fromRow, toCol, toRow, activeP, isCapture, null);
-
-                        if (isKingInCheck() && isCheckMate()){
-                            gameOver = true;
-                        }else if (isStalemate() && !isKingInCheck()){
-                            stalemate = true;
-                        }
-                        else { // The game is still going on
-                            if (canPromote()){
-                                promotion = true;
-                            }else {
-                                changePlayer();
+                    if (activeP == null) {
+                        // If the activeP is Null, check if you can pick up a piece
+                        for (Piece piece : simPieces) {
+                            // if the mouse is on an all piece, pick it up as the activeP
+                            if (piece.color == currentColor &&
+                                    piece.col == (scaledMouseX - Board.MARGIN) / Board.SQUARE_SIZE &&
+                                    piece.row == (scaledMouseY - Board.MARGIN) / Board.SQUARE_SIZE) {
+                                activeP = piece;
                             }
                         }
-
-
                     }else {
-                        //The move is not valid so reset everything
-                        copyPieces(pieces, simPieces);
-                        activeP.resetPosition();
-                        activeP = null;
+                        // if the player is holding a piece, simulate the move
+                        simulate();
+                    }
+
+                }
+                // Mouse Button released
+                if (!mouse.pressed){
+
+                    if (activeP != null){
+
+                        if (validSquare){
+                            // Move confirmed
+                            executeMove();
+                        }else {
+                            //The move is not valid so reset everything
+                            copyPieces(pieces, simPieces);
+                            activeP.resetPosition();
+                            activeP = null;
+                        }
                     }
                 }
             }
         }
+    }
+    
+    /**
+     * Выполняет ход (используется для игрока и AI)
+     */
+    private void executeMove() {
+        // Сохраняем позиции для записи хода
+        int fromCol = activeP.preCol;
+        int fromRow = activeP.preRow;
+        int toCol = activeP.col;
+        int toRow = activeP.row;
+        boolean isCapture = activeP.hittingP != null;
+
+        //Update the piece list in case a piece has been captured and removed during the simulation
+        copyPieces(simPieces, pieces);
+        activeP.updatePosition();
+        if (castlingP != null){
+            castlingP.updatePosition();
+        }
+
+        // Записываем ход в историю
+        moveHistory.addMove(fromCol, fromRow, toCol, toRow, activeP, isCapture, null);
+
+        if (isKingInCheck() && isCheckMate()){
+            gameOver = true;
+        }else if (isStalemate() && !isKingInCheck()){
+            stalemate = true;
+        }
+        else { // The game is still going on
+            if (canPromote()){
+                promotion = true;
+            }else {
+                changePlayer();
+            }
+        }
+        
+        activeP = null;
+    }
+    
+    /**
+     * Выполняет ход AI в отдельном потоке
+     */
+    private void makeAIMove() {
+        aiThinking = true;
+        
+        new Thread(() -> {
+            try {
+                Thread.sleep(500 + (int)(Math.random() * 1000));
+                
+                int[] move = ai.findBestMove(new ArrayList<>(pieces), aiColor);
+                
+                if (move != null) {
+                    System.out.println("AI move: " + move[0] + "," + move[1] + " -> " + move[2] + "," + move[3]);
+                    
+                    copyPieces(pieces, simPieces);
+                    
+                    Piece movingPiece = null;
+                    for (Piece piece : simPieces) {
+                        if (piece.col == move[0] && piece.row == move[1] && piece.color == aiColor) {
+                            movingPiece = piece;
+                            break;
+                        }
+                    }
+                    
+                    if (movingPiece != null) {
+                        activeP = movingPiece;
+                        
+                        int fromCol = activeP.col;
+                        int fromRow = activeP.row;
+                        
+                        activeP.x = movingPiece.getX(move[2]);
+                        activeP.y = movingPiece.getY(move[3]);
+                        activeP.col = move[2];
+                        activeP.row = move[3];
+                        
+                        if (activeP.canMove(move[2], move[3])) {
+                            canMove = true;
+                            
+                            boolean isCapture = activeP.hittingP != null;
+                            
+                            if (activeP.hittingP != null) {
+                                simPieces.remove(activeP.hittingP.getIndex());
+                            }
+                            
+                            checkCastling();
+                            
+                            if (!isIllegal(activeP) && !opponentCanCaptureKing()) {
+                                validSquare = true;
+                                
+                                copyPieces(simPieces, pieces);
+                                activeP.updatePosition();
+                                if (castlingP != null) {
+                                    castlingP.updatePosition();
+                                }
+                                
+                                moveHistory.addMove(fromCol, fromRow, move[2], move[3], activeP, isCapture, null);
+                                
+                                if (isKingInCheck() && isCheckMate()) {
+                                    gameOver = true;
+                                } else if (isStalemate() && !isKingInCheck()) {
+                                    stalemate = true;
+                                } else {
+                                    if (canPromote()) {
+                                        promotion = true;
+                                    } else {
+                                        changePlayer();
+                                    }
+                                }
+                                
+                                activeP = null;
+                                validSquare = false;
+                                canMove = false;
+                            }
+                        }
+                    }
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+            } finally {
+                aiThinking = false;
+            }
+        }).start();
     }
 
 
