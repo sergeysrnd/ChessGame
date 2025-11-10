@@ -4,38 +4,21 @@ import javax.swing.*;
 
 /**
  * Main класс - точка входа в шахматную игру
- * Инициализирует графический интерфейс и запускает игровой процесс
+ * Автоматически запускает PvP игру (Человек vs Человек) без диалога выбора режима
  */
 public class Main {
 
-// TODO: Раскомментировать после добавления иконки
-//    static ImageIcon logo = new ImageIcon(Main.class.getClassLoader().
-//            getResource("res/chess.png"));
-
     public static void main(String[] args) {
         // Создаем главное окно игры
-        JFrame window = new JFrame("Chess Game");
+        JFrame window = new JFrame("Chess Game - PvP Only");
         
         // Настраиваем параметры окна
         window.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);  // Закрытие окна завершает программу
         window.setResizable(true);                             // Разрешаем изменение размера окна
         window.setMinimumSize(new java.awt.Dimension(850, 600)); // Минимальный размер окна
-//      window.getIconImage(logo.getImage());                  // TODO: Добавить иконку окна
 
-        // Показываем диалог выбора режима игры
-        GameModeSelector modeSelector = new GameModeSelector(window);
-        modeSelector.setVisible(true);
-        
-        int gameMode = modeSelector.getSelectedMode();
-        int difficulty = modeSelector.getSelectedDifficulty();
-        
-        // Если пользователь закрыл диалог без выбора, используем режим PvP по умолчанию
-        if (gameMode == -1) {
-            gameMode = 0;
-        }
-        
-        // Создаем и добавляем игровую панель
-        GamePanel gp = new GamePanel(gameMode, difficulty);    // Создаем панель с выбранным режимом
+        // Создаем и добавляем игровую панель (только PvP режим)
+        GamePanel gp = new GamePanel();    // Создаем панель для PvP режима с стандартной начальной позицией
         window.add(gp);                                        // Добавляем панель в окно
         window.pack();                                         // Устанавливаем оптимальный размер окна
 

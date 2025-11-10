@@ -1,19 +1,24 @@
-# Chess Game
+# Chess Game - PvP Edition
 
-This is a simple chess game implemented in Java. It allows you to play chess on a graphical user interface.
+This is a simple chess game implemented in Java, featuring a clean **Player vs Player (PvP)** experience with a graphical user interface.
 
 ![image](https://github.com/pnpduy/ChessGame/assets/45529371/add8be29-011e-48ce-8514-3ba91014230a)
+
+## Recent Updates
+
+**AI Mode Removed** (November 2025) - This version has been refactored to focus solely on local two-player gameplay, removing all AI functionality for a cleaner, more focused gaming experience.
 
 ## Features
 
 - ✅ Supports standard chess rules (including castling, en passant, promotion)
 - ✅ GUI interface for easy gameplay with drag-and-drop moves
 - ✅ Pieces move according to their specific rules
-- ✅ **AI Opponent** with 5 difficulty levels (Minimax with alpha-beta pruning)
-- ✅ Two game modes: Human vs Human (PvP) and Human vs Computer (PvAI)
+- ✅ **Pure Player vs Player mode** - local two-player chess
 - ✅ Move history with algebraic notation
 - ✅ Check, checkmate, and stalemate detection
 - ✅ Responsive UI with window resizing support
+- ✅ Fast startup (no AI loading required)
+- ✅ Streamlined interface without mode selection dialogs
 
 ## How to Play
 
@@ -23,36 +28,43 @@ This is a simple chess game implemented in Java. It allows you to play chess on 
 run.bat
 
 # Or compile and run manually
-javac -d bin -sourcepath src src\main\*.java src\piece\*.java src\ai\*.java
+javac -d bin src\main\*.java src\piece\*.java
 java -cp bin main.Main
 ```
 
-### Game Modes
-1. **Human vs Human** - Play against another person on the same computer
-2. **Human vs Computer** - Play against AI with 5 difficulty levels:
-   - Level 1: Very Easy (random moves)
-   - Level 2: Easy (random good moves)
-   - Level 3: Medium (Minimax depth 3)
-   - Level 4: Hard (Minimax depth 4)
-   - Level 5: Very Hard (Minimax depth 5)
+### Game Mode
+- **Human vs Human** - Play against another person on the same computer
+- Game automatically starts with the standard chess board setup
+- No configuration required - jump straight into the action!
 
 ## Controls
 
 - **Select piece**: Click on a piece to select it
 - **Move piece**: Drag to a valid square and release
 - **Valid squares**: Highlighted in white (or gray if illegal due to check)
-- **Game mode**: Choose at startup dialog
+- **Turn indicator**: Clear visual feedback for whose turn it is
 
-## AI Features
+## Technical Improvements
 
-The AI opponent uses the **Minimax algorithm with alpha-beta pruning** to evaluate positions and select optimal moves. See [AI_GUIDE.md](AI_GUIDE.md) for detailed documentation on:
-- How the AI works
-- Difficulty levels and performance
-- Optimization tips
-- How to improve the AI strength
+The AI removal has resulted in:
+- **Simplified codebase** - Removed 5000+ lines of AI-related code
+- **Faster loading** - No AI initialization overhead
+- **Better performance** - Reduced memory footprint
+- **Cleaner UI** - Streamlined interface without unused options
+- **Easier maintenance** - Focused codebase on core chess functionality
+
+## What's Been Removed
+
+- All AI decision-making logic and algorithms
+- AI difficulty level selection
+- AI-related configuration files
+- AI service classes and interfaces
+- Legacy AI implementations
+- AI model files and compiled classes
 
 ## Credits
 
-- Created by [pnpduy](https://github.com/pnpduy).
-- Tutorial by [Ryisnow](https://www.youtube.com/@RyiSnow).
-- Chess pieces images by [Ryisnow](https://www.youtube.com/@RyiSnow).
+- Created by [pnpduy](https://github.com/pnpduy)
+- Tutorial by [Ryisnow](https://www.youtube.com/@RyiSnow)
+- Chess pieces images by [Ryisnow](https://www.youtube.com/@RyiSnow)
+- AI removal refactoring by AI-assisted development

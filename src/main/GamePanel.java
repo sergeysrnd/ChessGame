@@ -1,7 +1,6 @@
 package main;
 
 import piece.*;
-import ai.ChessAI;
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ComponentAdapter;
@@ -27,46 +26,40 @@ public class GamePanel extends JPanel implements Runnable {
     Thread gameThread;                      // Поток игрового цикла
     Board board = new Board();             // Шахматная доска
     Mouse mouse = new Mouse();             // Обработчик мыши
-    MoveHistory moveHistory = new MoveHistory();  // История ходов
+    public MoveHistory moveHistory = new MoveHistory();  // История ходов
 
     // Управление фигурами
     public static ArrayList<Piece> pieces = new ArrayList<>();     // Список всех фигур на доске
     public static ArrayList<Piece> simPieces = new ArrayList<>();  // Копия фигур для симуляции ходов
     ArrayList<Piece> promoPieces = new ArrayList<>();             // Фигуры для превращения пешки
     public static Piece castlingP;                                // Фигура для рокировки
-    Piece activeP,                                               // Выбранная фигура
+    public Piece activeP,                                               // Выбранная фигура
           checkingP;                                             // Фигура, создающая шах
+    private Piece promotingPawn;                                      // Пешка для превращения
 
 
     // Цвета игроков
     public static final int WHITE = 0;                           // Белые фигуры
     public static final int BLACK = 1;                           // Черные фигуры
-    int currentColor = WHITE;                                    // Текущий ход
+    public int currentColor = WHITE;                                    // Текущий ход
 
     // Флаги состояния игры
-    boolean canMove;                                             // Можно ли двигать фигуру
-    boolean validSquare;                                         // Допустимая клетка для хода
-    boolean promotion;                                           // Режим превращения пешки
-    boolean gameOver;                                            // Игра окончена
-    boolean stalemate;                                          // Патовая ситуация
+    public boolean canMove;                                             // Можно ли двигать фигуру
+    public boolean validSquare;                                         // Допустимая клетка для хода
+    public boolean promotion;                                           // Режим превращения пешки
+    public boolean gameOver;                                            // Игра окончена
+    public boolean stalemate;                                          // Патовая ситуация
     
-    // AI режим
-    private int gameMode;                                        // 0: PvP, 1: PvAI
-    private ChessAI ai;                                          // Искусственный интеллект
-    private boolean aiThinking;                                  // AI думает над ходом
-    private int aiColor;                                         // Цвет фигур AI (обычно BLACK)
-
     public GamePanel() {
-        this(0, 3);  // По умолчанию PvP режим
+        initializeGame();
     }
     
     public GamePanel(int gameMode, int difficulty) {
-        this.gameMode = gameMode;
-        this.aiColor = BLACK;  // AI играет черными
-        
-        if (gameMode == 1) {
-            this.ai = new ChessAI(difficulty);
-        }
+        // Only PvP mode is supported now
+        initializeGame();
+    }
+    
+    private void initializeGame() {
         
         setPreferredSize(new Dimension(MIN_WIDTH, MIN_HEIGHT));
         setBackground(Color.black);
@@ -150,7 +143,7 @@ public class GamePanel extends JPanel implements Runnable {
 
     }
 
-    private void copyPieces(ArrayList<Piece> source, ArrayList<Piece> target){
+    public void copyPieces(ArrayList<Piece> source, ArrayList<Piece> target){
         target.clear();
         for (int i = 0; i < source.size(); i++) {
             target.add(source.get(i));
@@ -187,51 +180,43 @@ public class GamePanel extends JPanel implements Runnable {
         if (promotion){
             promotion();
         }else if (!gameOver && !stalemate){
-            // Обработка хода AI если это режим PvAI и ход AI
-            if (gameMode == 1 && currentColor == aiColor && !aiThinking) {
-                makeAIMove();
-            }
-            
-            // Обработка ходов игрока (только если это не ход AI)
-            if (currentColor != aiColor || gameMode == 0) {
-                // Mouse Button Pressed //
-                if (mouse.pressed) {
-                    // Пересчитываем координаты мыши с учетом масштаба
-                    double scale = Math.min((double) currentWidth / MIN_WIDTH, 
-                                          (double) currentHeight / MIN_HEIGHT);
-                    int scaledMouseX = (int) (mouse.x / scale);
-                    int scaledMouseY = (int) (mouse.y / scale);
+            // Mouse Button Pressed //
+            if (mouse.pressed) {
+                // Пересчитываем координаты мыши с учетом масштаба
+                double scale = Math.min((double) currentWidth / MIN_WIDTH,
+                                      (double) currentHeight / MIN_HEIGHT);
+                int scaledMouseX = (int) (mouse.x / scale);
+                int scaledMouseY = (int) (mouse.y / scale);
 
-                    if (activeP == null) {
-                        // If the activeP is Null, check if you can pick up a piece
-                        for (Piece piece : simPieces) {
-                            // if the mouse is on an all piece, pick it up as the activeP
-                            if (piece.color == currentColor &&
-                                    piece.col == (scaledMouseX - Board.MARGIN) / Board.SQUARE_SIZE &&
-                                    piece.row == (scaledMouseY - Board.MARGIN) / Board.SQUARE_SIZE) {
-                                activeP = piece;
-                            }
+                if (activeP == null) {
+                    // If the activeP is Null, check if you can pick up a piece
+                    for (Piece piece : simPieces) {
+                        // if the mouse is on an all piece, pick it up as the activeP
+                        if (piece.color == currentColor &&
+                                piece.col == (scaledMouseX - Board.MARGIN) / Board.SQUARE_SIZE &&
+                                piece.row == (scaledMouseY - Board.MARGIN) / Board.SQUARE_SIZE) {
+                            activeP = piece;
                         }
-                    }else {
-                        // if the player is holding a piece, simulate the move
-                        simulate();
                     }
-
+                }else {
+                    // if the player is holding a piece, simulate the move
+                    simulate();
                 }
-                // Mouse Button released
-                if (!mouse.pressed){
 
-                    if (activeP != null){
+            }
+            // Mouse Button released
+            if (!mouse.pressed){
 
-                        if (validSquare){
-                            // Move confirmed
-                            executeMove();
-                        }else {
-                            //The move is not valid so reset everything
-                            copyPieces(pieces, simPieces);
-                            activeP.resetPosition();
-                            activeP = null;
-                        }
+                if (activeP != null){
+
+                    if (validSquare){
+                        // Move confirmed
+                        executeMove();
+                    }else {
+                        //The move is not valid so reset everything
+                        copyPieces(pieces, simPieces);
+                        activeP.resetPosition();
+                        activeP = null;
                     }
                 }
             }
@@ -239,7 +224,7 @@ public class GamePanel extends JPanel implements Runnable {
     }
     
     /**
-     * Выполняет ход (используется для игрока и AI)
+     * Выполняет ход игрока
      */
     private void executeMove() {
         // Сохраняем позиции для записи хода
@@ -267,6 +252,8 @@ public class GamePanel extends JPanel implements Runnable {
         else { // The game is still going on
             if (canPromote()){
                 promotion = true;
+                // Store the pawn for promotion before clearing activeP
+                promotingPawn = activeP;
             }else {
                 changePlayer();
             }
@@ -274,108 +261,30 @@ public class GamePanel extends JPanel implements Runnable {
         
         activeP = null;
     }
-    
-    /**
-     * Выполняет ход AI в отдельном потоке
-     */
-    private void makeAIMove() {
-        aiThinking = true;
-        
-        new Thread(() -> {
-            try {
-                Thread.sleep(500 + (int)(Math.random() * 1000));
-                
-                int[] move = ai.findBestMove(new ArrayList<>(pieces), aiColor);
-                
-                if (move != null) {
-                    System.out.println("AI move: " + move[0] + "," + move[1] + " -> " + move[2] + "," + move[3]);
-                    
-                    copyPieces(pieces, simPieces);
-                    
-                    Piece movingPiece = null;
-                    for (Piece piece : simPieces) {
-                        if (piece.col == move[0] && piece.row == move[1] && piece.color == aiColor) {
-                            movingPiece = piece;
-                            break;
-                        }
-                    }
-                    
-                    if (movingPiece != null) {
-                        activeP = movingPiece;
-                        
-                        int fromCol = activeP.col;
-                        int fromRow = activeP.row;
-                        
-                        activeP.x = movingPiece.getX(move[2]);
-                        activeP.y = movingPiece.getY(move[3]);
-                        activeP.col = move[2];
-                        activeP.row = move[3];
-                        
-                        if (activeP.canMove(move[2], move[3])) {
-                            canMove = true;
-                            
-                            boolean isCapture = activeP.hittingP != null;
-                            
-                            if (activeP.hittingP != null) {
-                                simPieces.remove(activeP.hittingP.getIndex());
-                            }
-                            
-                            checkCastling();
-                            
-                            if (!isIllegal(activeP) && !opponentCanCaptureKing()) {
-                                validSquare = true;
-                                
-                                copyPieces(simPieces, pieces);
-                                activeP.updatePosition();
-                                if (castlingP != null) {
-                                    castlingP.updatePosition();
-                                }
-                                
-                                moveHistory.addMove(fromCol, fromRow, move[2], move[3], activeP, isCapture, null);
-                                
-                                if (isKingInCheck() && isCheckMate()) {
-                                    gameOver = true;
-                                } else if (isStalemate() && !isKingInCheck()) {
-                                    stalemate = true;
-                                } else {
-                                    if (canPromote()) {
-                                        promotion = true;
-                                    } else {
-                                        changePlayer();
-                                    }
-                                }
-                                
-                                activeP = null;
-                                validSquare = false;
-                                canMove = false;
-                            }
-                        }
-                    }
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            } finally {
-                aiThinking = false;
-            }
-        }).start();
-    }
 
 
     private void promotion() {
+        // Add null check to prevent NullPointerException
+        if (promotingPawn == null) {
+            System.err.println("Error: No pawn available for promotion");
+            promotion = false;
+            return;
+        }
 
         if (mouse.pressed){
             for(Piece piece : promoPieces){
                 if (piece.col == mouse.x/Board.SQUARE_SIZE && piece.row == mouse.y/Board.SQUARE_SIZE){
+                    // Use promotingPawn instead of activeP to avoid NPE
                     switch (piece.type){
-                        case ROOK: simPieces.add(new Rook(activeP.col, activeP.row, currentColor)); break;
-                        case KNIGHT: simPieces.add(new Knight(activeP.col, activeP.row, currentColor)); break;
-                        case BISHOP: simPieces.add(new Bishop(activeP.col, activeP.row, currentColor)); break;
-                        case QUEEN: simPieces.add(new Queen(activeP.col, activeP.row, currentColor)); break;
+                        case ROOK: simPieces.add(new Rook(promotingPawn.col, promotingPawn.row, currentColor)); break;
+                        case KNIGHT: simPieces.add(new Knight(promotingPawn.col, promotingPawn.row, currentColor)); break;
+                        case BISHOP: simPieces.add(new Bishop(promotingPawn.col, promotingPawn.row, currentColor)); break;
+                        case QUEEN: simPieces.add(new Queen(promotingPawn.col, promotingPawn.row, currentColor)); break;
                         default: break;
                     }
-                    simPieces.remove(activeP.getIndex());
+                    simPieces.remove(promotingPawn.getIndex());
                     copyPieces(simPieces, pieces);
-                    activeP = null;
+                    promotingPawn = null; // Clear the stored pawn reference
                     promotion = false;
                     changePlayer();
                 }
@@ -593,7 +502,7 @@ public class GamePanel extends JPanel implements Runnable {
         g2.setTransform(oldTransform);
     }
 
-    private void changePlayer(){
+    public void changePlayer(){
 
         if (currentColor == WHITE){
             currentColor = BLACK;
@@ -615,7 +524,7 @@ public class GamePanel extends JPanel implements Runnable {
         activeP = null;
     }
 
-    private void checkCastling(){
+    public void checkCastling(){
 
         if (castlingP != null){
             if (castlingP.col == 0) {
@@ -627,7 +536,7 @@ public class GamePanel extends JPanel implements Runnable {
         }
     }
 
-    private  boolean canPromote(){
+    public boolean canPromote(){
 
         if (activeP.type == Type.PAWN){
             if (currentColor == WHITE && activeP.row == 0 || currentColor == BLACK && activeP.row == 7){
@@ -642,7 +551,7 @@ public class GamePanel extends JPanel implements Runnable {
         return false;
     }
 
-    private boolean isKingInCheck() {
+    public boolean isKingInCheck() {
 
         Piece king = getKing(true);
 
@@ -675,7 +584,7 @@ public class GamePanel extends JPanel implements Runnable {
         return king;
     }
 
-    private boolean isIllegal(Piece king){
+    public boolean isIllegal(Piece king){
 
         if (king.type == Type.KING){
              for (Piece piece : simPieces){
@@ -687,7 +596,7 @@ public class GamePanel extends JPanel implements Runnable {
         return false;
     }
 
-    private boolean opponentCanCaptureKing() {
+    public boolean opponentCanCaptureKing() {
 
         Piece king = getKing(false);
 
@@ -700,7 +609,7 @@ public class GamePanel extends JPanel implements Runnable {
         return false;
     }
 
-    private boolean isCheckMate(){
+    public boolean isCheckMate(){
 
         Piece king = getKing(true);
 
@@ -869,7 +778,7 @@ public class GamePanel extends JPanel implements Runnable {
         return isValidMove;
     }
 
-    private boolean isStalemate(){
+    public boolean isStalemate(){
         int count = 0;
         // Count the number of piece
         for (Piece piece : simPieces){
