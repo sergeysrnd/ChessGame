@@ -1,0 +1,47 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "maven: clean compile",
+            "type": "shell",
+            "command": "mvn",
+            "args": ["clean", "compile"],
+            "cwd": "${workspaceFolder}",
+            "isBackground": false,
+            "problemMatcher": [
+                "$java"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "maven: javafx:run",
+            "type": "shell",
+            "command": "mvn",
+            "args": ["javafx:run"],
+            "cwd": "${workspaceFolder}",
+            "isBackground": false,
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        },
+        {
+            "label": "maven: package",
+            "type": "shell",
+            "command": "mvn",
+            "args": ["clean", "package"],
+            "cwd": "${workspaceFolder}",
+            "isBackground": false,
+            "problemMatcher": [
+                "$java"
+            ],
+            "presentation": {
+                "reveal": "always",
+                "panel": "shared"
+            }
+        }
+    ]
+}

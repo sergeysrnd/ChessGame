@@ -1,0 +1,14 @@
+chessgame\sound\SoundManager$SoundManagerListener.class
+chessgame\engine\BagaturEngine$ChessMove.class
+chessgame\sound\SoundSet.class
+chessgame\sound\SoundSettingsPanel$SoundManagerListener.class
+chessgame\sound\SoundPreferences.class
+chessgame\ui\ChessBoard.class
+chessgame\logic\ChessGame.class
+chessgame\sound\SoundSettingsPanel.class
+chessgame\engine\BagaturEngine.class
+chessgame\logic\ChessGame$MoveRecord.class
+chessgame\sound\SoundManager.class
+chessgame\Main.class
+chessgame\sound\SoundManager$1.class
+chessgame\logic\PositionValidator.class

@@ -1,0 +1,24 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "ChessGame (Direct)",
+            "request": "launch",
+            "mainClass": "chessgame.Main",
+            "projectName": "chessgame",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "maven: clean compile",
+            "vmArgs": "--module-path ${workspaceFolder}/target/dependency --add-modules javafx.controls,javafx.fxml,javafx.graphics,javafx.base"
+        },
+        {
+            "type": "java",
+            "name": "ChessGame (Maven)",
+            "request": "launch",
+            "mainClass": "chessgame.Main",
+            "projectName": "chessgame",
+            "cwd": "${workspaceFolder}",
+            "preLaunchTask": "maven: javafx:run"
+        }
+    ]
+}

@@ -1,70 +1,191 @@
-# Chess Game - PvP Edition
+# Шахматная игра с AI Bagatur
 
-This is a simple chess game implemented in Java, featuring a clean **Player vs Player (PvP)** experience with a graphical user interface.
+Полноценная настольная шахматная игра на Java с возможностью игры против искусственного интеллекта, используя шахматный движок Bagatur.
 
-![image](https://github.com/pnpduy/ChessGame/assets/45529371/add8be29-011e-48ce-8514-3ba91014230a)
+## Описание проекта
 
-## Recent Updates
+Это Java-приложение предоставляет:
 
-**AI Mode Removed** (November 2025) - This version has been refactored to focus solely on local two-player gameplay, removing all AI functionality for a cleaner, more focused gaming experience.
+- ✅ Полноценную шахматную доску с визуальным интерфейсом
+- ✅ Игру против AI с использованием движка Bagatur  
+- ✅ Возможность выбора цвета фигур (белые или черные)
+- ✅ Поддержку всех базовых шахматных правил
+- ✅ Отображение шаха, мата и ничьей
+- ✅ Визуальные подсветки возможных ходов
+- ✅ Богатый выбор изображений фигур из разных тем
 
-## Features
+## Архитектура проекта
 
-- ✅ Supports standard chess rules (including castling, en passant, promotion)
-- ✅ GUI interface for easy gameplay with drag-and-drop moves
-- ✅ Pieces move according to their specific rules
-- ✅ **Pure Player vs Player mode** - local two-player chess
-- ✅ Move history with algebraic notation
-- ✅ Check, checkmate, and stalemate detection
-- ✅ Responsive UI with window resizing support
-- ✅ Fast startup (no AI loading required)
-- ✅ Streamlined interface without mode selection dialogs
-
-## How to Play
-
-### Quick Start
-```bash
-# Run the game
-run.bat
-
-# Or compile and run manually
-javac -d bin src\main\*.java src\piece\*.java
-java -cp bin main.Main
+### Структура файлов:
+```
+ChessGame/
+├── pom.xml                                    # Конфигурация Maven
+├── README.md                                  # Данный файл
+├── src/main/
+│   ├── java/chessgame/
+│   │   ├── Main.java                          # Точка входа в приложение
+│   │   ├── ui/
+│   │   │   └── ChessBoard.java               # Главный игровой интерфейс (JavaFX)
+│   │   ├── engine/
+│   │   │   └── BagaturEngine.java            # Обёртка для шахматного движка Bagatur
+│   │   └── logic/
+│   │       ├── ChessGame.java                # Основная игровая логика
+│   │       └── PositionValidator.java        # Валидация позиций и ходов
+│   └── resources/                             # Ресурсы приложения
+│       ├── chess.png                         # Иконка приложения
+│       └── res/pieces/                       # Изображения фигур различных тем
+│           ├── ocean/                        # Тема Ocean
+│           ├── tournament/                   # Тема Tournament  
+│           ├── vintage/                      # Тема Vintage
+│           ├── space/                        # Тема Space
+│           └── ...                           # Другие темы фигур
+└── target/                                    # Скомпилированные файлы (после сборки)
 ```
 
-### Game Mode
-- **Human vs Human** - Play against another person on the same computer
-- Game automatically starts with the standard chess board setup
-- No configuration required - jump straight into the action!
+### Ключевые компоненты:
 
-## Controls
+1. **Main.java** - точка входа, инициализация JavaFX приложения
+2. **ChessBoard.java** - визуальный интерфейс доски на JavaFX
+3. **BagaturEngine.java** - обёртка для шахматного AI движка
+4. **ChessGame.java** - базовая логика игры, проверка правил
+5. **PositionValidator.java** - валидация FEN позиций и ходов
 
-- **Select piece**: Click on a piece to select it
-- **Move piece**: Drag to a valid square and release
-- **Valid squares**: Highlighted in white (or gray if illegal due to check)
-- **Turn indicator**: Clear visual feedback for whose turn it is
+## Технические требования
 
-## Technical Improvements
+- **Java**: версия 17 или выше
+- **Система сборки**: Maven 3.6+
+- **GUI**: JavaFX (включён в зависимости)
+- **Логирование**: SLF4J + Simple Logger
 
-The AI removal has resulted in:
-- **Simplified codebase** - Removed 5000+ lines of AI-related code
-- **Faster loading** - No AI initialization overhead
-- **Better performance** - Reduced memory footprint
-- **Cleaner UI** - Streamlined interface without unused options
-- **Easier maintenance** - Focused codebase on core chess functionality
+## Шахматный движок Bagatur
 
-## What's Been Removed
+Проект использует **Bagatur Chess Engine** - мощный шахматный движок на Java.
 
-- All AI decision-making logic and algorithms
-- AI difficulty level selection
-- AI-related configuration files
-- AI service classes and interfaces
-- Legacy AI implementations
-- AI model files and compiled classes
+- **GitHub репозиторий**: https://github.com/bagaturchess/Bagatur
+- **Лицензия**: Apache License 2.0
+- **Особенности**: Высокая производительность, поддержка всех шахматных правил
 
-## Credits
+### Интеграция в проект:
+```xml
+<dependency>
+    <groupId>com.github.bagaturchess</groupId>
+    <artifactId>bagaturchess-core</artifactId>
+    <version>1.7.0</version>
+</dependency>
+```
 
-- Created by [pnpduy](https://github.com/pnpduy)
-- Tutorial by [Ryisnow](https://www.youtube.com/@RyiSnow)
-- Chess pieces images by [Ryisnow](https://www.youtube.com/@RyiSnow)
-- AI removal refactoring by AI-assisted development
+## Инструкции по сборке и запуску
+
+### 1. Компиляция проекта
+```bash
+# Перейдите в директорию проекта
+cd C:\Users\SERG\vsc\ChessGame
+
+# Скомпилируйте проект
+mvn clean compile
+```
+
+### 2. Сборка JAR файла
+```bash
+# Создайте исполняемый JAR с зависимостями
+mvn clean package
+```
+
+### 3. Запуск приложения
+```bash
+# Запуск через Maven
+mvn javafx:run
+
+# Или запуск скомпилированного JAR
+java -jar target/ChessGame-1.0.0-jar-with-dependencies.jar
+```
+
+### 4. Альтернативные параметры запуска
+```bash
+# Играть белыми фигурами (по умолчанию)
+java -jar target/ChessGame.jar
+
+# Играть черными фигурами
+java -jar target/ChessGame.jar --black
+
+# Явное указание белых фигур
+java -jar target/ChessGame.jar --white
+```
+
+## Особенности игрового процесса
+
+### Игровые возможности:
+- **Выбор цвета**: При запуске предлагается выбрать белые или чёрные фигуры
+- **Ходы**: Кликните на фигуру, затем на целевую клетку
+- **Валидация**: Автоматическая проверка легальности ходов
+- **Индикация**: Визуальная подсветка выбранной фигуры и возможных ходов
+- **AI**: Играет против движка Bagatur с настраиваемым временем поиска
+
+### Состояния игры:
+- ✅ **Шах** - король под атакой
+- ✅ **Мат** - король не может избежать атаки  
+- ✅ **Пат** - игрок не может сделать ход, но не под шахом
+- ✅ **Ничья** - завершение партии вничью
+
+### Управление:
+- **Новая партия** - начать новую игру
+- **Отменить ход** - отменить последний ход (в разработке)
+- **Выход** - закрыть приложение
+
+## Файлы ресурсов
+
+Проект включает богатую коллекцию изображений фигур:
+
+- **Ocean Theme** - синяя морская тема
+- **Tournament Theme** - классические шахматные фигуры  
+- **Vintage Theme** - винтажные фигуры
+- **Space Theme** - футуристические фигуры
+- **И другие темы**: Tiger, Spatial, Skulls, Random и др.
+
+Все изображения автоматически загружаются из папки `res/pieces/`.
+
+## Логирование
+
+Приложение использует SLF4J для логирования:
+- Уровень INFO - основная информация о ходах
+- Уровень WARN - предупреждения  
+- Уровень ERROR - ошибки выполнения
+
+Логи выводятся в консоль с цветовым кодированием.
+
+## Возможные улучшения
+
+- [ ] Добавить таймер для каждого игрока
+- [ ] Сохранение и загрузка партий
+- [ ] Мультиплеер через сеть  
+- [ ] Анализ позиций с показом оценки
+- [ ] Темы интерфейса
+- [ ] Звуковые эффекты
+
+## Устранение неполадок
+
+### Проблема: "Java not found"
+```bash
+# Проверьте установку Java 17+
+java -version
+
+# Настройте переменную JAVA_HOME
+```
+
+### Проблема: "Maven not found"
+```bash
+# Установите Maven или используйте Maven Wrapper
+mvnw.cmd clean package
+```
+
+### Проблема: "JavaFX runtime components are missing"
+- Все необходимые зависимости уже включены в POM.xml
+- Используйте команду `mvn javafx:run` для правильного запуска
+
+## Лицензия
+
+Проект создан в образовательных целях. Шахматный движок Bagatur распространяется под Apache License 2.0.
+
+## Автор
+
+Разработано как демонстрационный проект шахматной игры на Java с интеграцией современного AI движка.
