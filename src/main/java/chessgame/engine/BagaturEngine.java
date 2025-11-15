@@ -125,12 +125,30 @@ public class BagaturEngine {
         List<ChessMove> possibleMoves = generatePossibleMoves(fenPosition, playerColor);
 
         if (possibleMoves.isEmpty()) {
+            logger.warn("No possible moves found for color: {}", playerColor);
             return null;
         }
 
         // Выбираем случайный ход из возможных (в реальном движке здесь был бы анализ)
         Random random = new Random();
-        return possibleMoves.get(random.nextInt(possibleMoves.size()));
+        ChessMove selectedMove = possibleMoves.get(random.nextInt(possibleMoves.size()));
+        
+        // Validate the selected move one more time before returning
+        boolean isWhite = playerColor == 'w';
+        if (!chessGame.isValidMove(selectedMove.getFrom(), selectedMove.getTo(), isWhite)) {
+            logger.warn("Selected move {} is invalid, trying to find alternative", selectedMove);
+            // Try to find a valid move
+            for (ChessMove move : possibleMoves) {
+                if (chessGame.isValidMove(move.getFrom(), move.getTo(), isWhite)) {
+                    logger.info("Found valid alternative move: {}", move);
+                    return move;
+                }
+            }
+            logger.error("No valid moves found in possible moves list!");
+            return null;
+        }
+        
+        return selectedMove;
     }
 
     /**
@@ -148,8 +166,13 @@ public class BagaturEngine {
                 for (String to : possibleMovesFromSquare) {
                     ChessMove move = new ChessMove(square, to, "piece");
                     moves.add(move);
+                    logger.debug("Generated move: {} -> {} for color {}", square, to, playerColor);
                 }
             }
+        }
+
+        if (moves.isEmpty()) {
+            logger.warn("No possible moves generated for color: {}", playerColor);
         }
 
         return moves;

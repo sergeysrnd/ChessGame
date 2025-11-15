@@ -834,7 +834,8 @@ public class ChessGame {
                         fen.append(emptyCount);
                         emptyCount = 0;
                     }
-                    fen.append(piece);
+                    // Конвертируем внутреннее представление в FEN нотацию
+                    fen.append(convertPieceToFEN(piece));
                 }
             }
             if (emptyCount > 0) {
@@ -865,6 +866,22 @@ public class ChessGame {
         fen.append((positionHistory.size() / 2) + 1);
 
         return fen.toString();
+    }
+
+    /**
+     * Конвертирует внутреннее представление фигуры в FEN нотацию.
+     */
+    private String convertPieceToFEN(String piece) {
+        if (piece.equals(EMPTY)) {
+            return "";
+        }
+        
+        boolean isWhite = piece.charAt(0) == 'w';
+        char pieceType = piece.charAt(1);
+        
+        // Конвертируем в FEN: белые - заглавные, черные - строчные
+        char fenChar = pieceType;
+        return isWhite ? String.valueOf(Character.toUpperCase(fenChar)) : String.valueOf(fenChar);
     }
 
     /**

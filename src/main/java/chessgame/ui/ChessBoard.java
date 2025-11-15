@@ -419,6 +419,11 @@ public class ChessBoard {
                     String from = aiMove.getFrom();
                     String to = aiMove.getTo();
 
+                    logger.debug("AI move attempt: {} -> {}, isPlayerWhite: {}, validating for: {}",
+                        from, to, isPlayerWhite, !isPlayerWhite);
+                    logger.debug("Piece at {}: {}", from, chessGame.getPieceAt(from));
+                    logger.debug("Current position: {}", chessGame.getCurrentPosition());
+
                     if (chessGame.isValidMove(from, to, !isPlayerWhite)) {
                         chessGame.makeMove(from, to);
 
@@ -444,7 +449,9 @@ public class ChessBoard {
                         isPlayerTurn = true;
                         updateStatus("Ваш ход");
                     } else {
-                        logger.warn("AI попытался сделать недопустимый ход: " + from + "-" + to);
+                        logger.warn("AI попытался сделать недопустимый ход: {} -> {}", from, to);
+                        logger.warn("Piece at {}: {}", from, chessGame.getPieceAt(from));
+                        logger.warn("Current position: {}", chessGame.getCurrentPosition());
                         isPlayerTurn = true;
                         updateStatus("Ваш ход");
                     }
